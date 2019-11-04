@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 
+const SUGGESTION_MATCH_LENGTH = 3;
+
 export default class MentionsTextInput extends Component {
   constructor() {
     super();
@@ -85,13 +87,35 @@ export default class MentionsTextInput extends Component {
     }
   }
 
+  isSuggestionMatch(lastNChar) {
+    const lastNMatches = this.props.suggestionsData.some((suggestion) => {
+      const name = suggestion.name.toLowerCase();
+      const lastNLowcCase = lastNChar.trim().toLowerCase();
+      if (lastNLowcCase.length == 3 && name.startsWith(lastNLowcCase)) {
+        return true;
+      }
+    });
+
+    return lastNMatches;
+  }
+
   onChangeText(val) {
     this.props.onChangeText(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
-    const wordBoundry = (this.props.triggerLocation === 'new-word-only') ? this.previousChar.trim().length === 0 : true;
-    if (lastChar === this.props.trigger && wordBoundry) {
+    const lastNChar = val.substr(val.length - SUGGESTION_MATCH_LENGTH);
+    const wordBoundry =
+      this.props.triggerLocation === "new-word-only"
+        ? this.previousChar.trim().length === 0
+        : true;
+
+    const triggerMatch = lastChar === this.props.trigger && wordBoundry;
+    const suggestionMatch = this.isSuggestionMatch(lastNChar);
+    if (triggerMatch || suggestionMatch) {
       this.startTracking();
-    } else if (lastChar === ' ' && this.state.isTrackingStarted || val === "") {
+    } else if (
+      (lastChar === " " && this.state.isTrackingStarted) ||
+      val === ""
+    ) {
       this.stopTracking();
     }
     this.previousChar = lastChar;
