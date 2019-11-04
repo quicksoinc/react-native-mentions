@@ -74,11 +74,18 @@ export default class MentionsTextInput extends Component {
     this.props.triggerCallback(lastKeyword);
   }
 
-  identifyKeyword(val) {
+  identifyKeyword(val, matcher) {
     if (this.isTrackingStarted) {
-      const boundary = this.props.triggerLocation === 'new-word-only' ? 'B' : '';
-      const escapedTrigger = this.props.trigger.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const pattern = new RegExp(`\\${boundary}${escapedTrigger}[a-z0-9_-]+|\\${boundary}${escapedTrigger}`, `gi`);
+      const matcherBoundary = matcher.length == 1 ? "B" : "b";
+      const boundary =
+        this.props.triggerLocation === "new-word-only" ? matcherBoundary : "";
+
+      const escapedTrigger = matcher.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const pattern = new RegExp(
+        `\\${boundary}${escapedTrigger}[a-z0-9_-]+|\\${boundary}${escapedTrigger}`,
+        `gi`,
+      );
+
       const keywordArray = val.match(pattern);
       if (keywordArray && !!keywordArray.length) {
         const lastKeyword = keywordArray[keywordArray.length - 1];
@@ -90,8 +97,11 @@ export default class MentionsTextInput extends Component {
   isSuggestionMatch(lastNChar) {
     const lastNMatches = this.props.suggestionsData.some((suggestion) => {
       const name = suggestion.name.toLowerCase();
-      const lastNLowcCase = lastNChar.trim().toLowerCase();
-      if (lastNLowcCase.length == SUGGESTION_MATCH_LENGTH && name.startsWith(lastNLowcCase)) {
+      const lastNLowCase = lastNChar.trim().toLowerCase();
+      if (
+        lastNLowCase.length == SUGGESTION_MATCH_LENGTH &&
+        name.indexOf(lastNLowCase) != -1
+      ) {
         return true;
       }
     });
@@ -119,7 +129,15 @@ export default class MentionsTextInput extends Component {
       this.stopTracking();
     }
     this.previousChar = lastChar;
-    this.identifyKeyword(val);
+
+    let matcher = this.props.trigger;
+
+    if (suggestionMatch) {
+      const words = val.split(" ");
+      matcher = words[words.length - 1];
+    }
+
+    this.identifyKeyword(val, matcher);
   }
 
   resetTextbox() {
