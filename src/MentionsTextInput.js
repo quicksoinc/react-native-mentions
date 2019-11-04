@@ -91,7 +91,7 @@ export default class MentionsTextInput extends Component {
     const lastNMatches = this.props.suggestionsData.some((suggestion) => {
       const name = suggestion.name.toLowerCase();
       const lastNLowcCase = lastNChar.trim().toLowerCase();
-      if (lastNLowcCase.length == 3 && name.startsWith(lastNLowcCase)) {
+      if (lastNLowcCase.length == SUGGESTION_MATCH_LENGTH && name.startsWith(lastNLowcCase)) {
         return true;
       }
     });
