@@ -109,8 +109,9 @@ export default class MentionsTextInput extends Component {
     return lastNMatches;
   }
 
-  onChangeText(val) {
-    this.props.onChangeText(val); // pass changed text back
+  onChange({nativeEvent: e}) {
+    const val = e.text;
+    this.props.onChange(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
     const lastNChar = val.substr(val.length - SUGGESTION_MATCH_LENGTH);
     const wordBoundry =
@@ -168,7 +169,7 @@ export default class MentionsTextInput extends Component {
             });
           }}
           ref={component => this._textInput = component}
-          onChangeText={this.onChangeText.bind(this)}
+          onChange={this.onChange.bind(this)}
           multiline={true}
           value={this.props.value}
           style={[{ ...this.props.textInputStyle }, { height: Math.min(this.props.textInputMaxHeight, this.state.textInputHeight) }]}
@@ -191,7 +192,7 @@ MentionsTextInput.propTypes = {
   trigger: PropTypes.string.isRequired,
   triggerLocation: PropTypes.oneOf(['new-word-only', 'anywhere']).isRequired,
   value: PropTypes.string.isRequired,
-  onChangeText: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
   triggerCallback: PropTypes.func.isRequired,
   renderSuggestionsRow: PropTypes.oneOfType([
     PropTypes.func,
