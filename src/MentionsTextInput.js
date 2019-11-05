@@ -109,7 +109,8 @@ export default class MentionsTextInput extends Component {
     return lastNMatches;
   }
 
-  onChangeText(val) {
+  onChange(e) {
+    const val = e.nativeEvent.text;
     this.props.onChangeText(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
     const lastNChar = val.substr(val.length - SUGGESTION_MATCH_LENGTH);
@@ -167,8 +168,8 @@ export default class MentionsTextInput extends Component {
               textInputHeight: this.props.textInputMinHeight >= event.nativeEvent.contentSize.height ? this.props.textInputMinHeight : event.nativeEvent.contentSize.height + 10,
             });
           }}
-          ref={component => this._textInput = component}
-          onChangeText={this.onChangeText.bind(this)}
+          ref={(component) => (this._textInput = component)}
+          onChange={this.onChange.bind(this)}
           multiline={true}
           value={this.props.value}
           style={[{ ...this.props.textInputStyle }, { height: Math.min(this.props.textInputMaxHeight, this.state.textInputHeight) }]}
