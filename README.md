@@ -26,7 +26,7 @@ import MentionsTextInput from 'react-native-mentions';
     trigger={'@'}
     triggerLocation={'new-word-only'} // 'new-word-only', 'anywhere'
     value={this.state.value}
-    onChange={(val) => { this.setState({ value: val }) }}
+    onChangeText={(val) => { this.setState({ value: val }) }}
     triggerCallback={this.callback.bind(this)}
     renderSuggestionsRow={this.renderSuggestionsRow.bind(this)}
     suggestionsData={this.state.data} // array of objects
