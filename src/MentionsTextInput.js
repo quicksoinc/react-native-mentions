@@ -114,13 +114,9 @@ export default class MentionsTextInput extends Component {
     this.props.onChangeText(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
     const lastNChar = val.substr(val.length - SUGGESTION_MATCH_LENGTH);
-    const wordBoundry =
-      this.props.triggerLocation === "new-word-only"
-        ? this.previousChar.trim().length === 0
-        : true;
-
-    const triggerMatch = lastChar === this.props.trigger && wordBoundry;
+    const triggerMatch = lastChar === this.props.trigger;
     const suggestionMatch = this.isSuggestionMatch(lastNChar);
+    
     if (triggerMatch || suggestionMatch) {
       this.startTracking();
     } else if (
