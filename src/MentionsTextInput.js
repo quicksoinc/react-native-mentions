@@ -74,12 +74,17 @@ export default class MentionsTextInput extends Component {
     this.props.triggerCallback(lastKeyword);
   }
 
+  getBoundary(matcher) {
+    const matcherBoundary =
+      matcher.length && matcher.startsWith(this.props.trigger) == 1 ? "B" : "b";
+    const boundary =
+      this.props.triggerLocation === "new-word-only" ? matcherBoundary : "";
+    return boundary;
+  }
+
   identifyKeyword(val, matcher) {
     if (this.isTrackingStarted) {
-      const matcherBoundary = matcher.length == 1 ? "B" : "b";
-      const boundary =
-        this.props.triggerLocation === "new-word-only" ? matcherBoundary : "";
-
+      const boundary = this.getBoundary(matcher);
       const escapedTrigger = matcher.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
       const pattern = new RegExp(
         `\\${boundary}${escapedTrigger}[a-z0-9_-]+|\\${boundary}${escapedTrigger}`,
