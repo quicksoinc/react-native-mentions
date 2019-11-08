@@ -4,8 +4,8 @@ import {
   View,
   Animated,
   TextInput,
-  FlatList,
-  ViewPropTypes
+  SectionList,
+  ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -36,7 +36,9 @@ export default class MentionsTextInput extends Component {
     } else if (this.isTrackingStarted && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
       const numOfRows = nextProps.MaxVisibleRowCount >= nextProps.suggestionsData.length ? nextProps.suggestionsData.length : nextProps.MaxVisibleRowCount;
       const height = numOfRows * nextProps.suggestionRowHeight;
-      this.openSuggestionsPanel(height);
+      // TODO szaboat: calculate
+      const sectionsHeight = 40;
+      this.openSuggestionsPanel(height + sectionsHeight);
     }
   }
 
@@ -152,14 +154,18 @@ export default class MentionsTextInput extends Component {
     return (
       <View>
         <Animated.View style={[{ ...this.props.suggestionsPanelStyle }, { height: this.state.suggestionRowHeight }]}>
-          <FlatList
+          <SectionList
             keyboardShouldPersistTaps={"always"}
             horizontal={this.props.horizontal}
             ListEmptyComponent={this.props.loadingComponent}
             enableEmptySections={true}
-            data={this.props.suggestionsData}
+            sections={this.props.sectionsMapper(this.props.suggestionsData)}
             keyExtractor={this.props.keyExtractor}
             renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text style={this.props.sectionHeaderStyle}>{title}</Text>
+            )}
+            stickySectionHeadersEnabled={false}
           />
         </Animated.View>
         <TextInput
@@ -200,6 +206,7 @@ MentionsTextInput.propTypes = {
     PropTypes.element,
   ]).isRequired,
   suggestionsData: PropTypes.array.isRequired,
+  sectionsMapper: PropTypes.func,
   keyExtractor: PropTypes.func.isRequired,
   horizontal: PropTypes.bool,
   suggestionRowHeight: PropTypes.number.isRequired,
@@ -209,7 +216,8 @@ MentionsTextInput.propTypes = {
         `Prop 'MaxVisibleRowCount' is required if horizontal is set to false.`
       );
     }
-  }
+  },
+  sectionHeaderStyle: Text.propTypes.style
 };
 
 MentionsTextInput.defaultProps = {
@@ -219,4 +227,12 @@ MentionsTextInput.defaultProps = {
   textInputMinHeight: 30,
   textInputMaxHeight: 80,
   horizontal: true,
+  sectionHeaderStyle: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    backgroundColor: "#E6E9EB",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+  }
 }
