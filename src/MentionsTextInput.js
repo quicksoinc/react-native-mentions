@@ -11,14 +11,6 @@ import PropTypes from 'prop-types';
 
 const SUGGESTION_MATCH_LENGTH = 3;
 
-const getLength = (data) => {
-  let length = 0;
-  data.forEach(element => {
-    length += element.data.length
-  });
-  return length;
-}
-
 export default class MentionsTextInput extends Component {
   constructor() {
     super();
@@ -41,10 +33,12 @@ export default class MentionsTextInput extends Component {
   componentWillReceiveProps(nextProps) {
     if (!nextProps.value) {
       this.resetTextbox();
-    } else if (this.isTrackingStarted && !nextProps.horizontal && getLength(nextProps.suggestionsData) !== 0) {
-      const numOfRows = nextProps.MaxVisibleRowCount >= getLength(nextProps.suggestionsData) ? getLength(nextProps.suggestionsData) : nextProps.MaxVisibleRowCount;
+    } else if (this.isTrackingStarted && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
+      const numOfRows = nextProps.MaxVisibleRowCount >= nextProps.suggestionsData.length ? nextProps.suggestionsData.length : nextProps.MaxVisibleRowCount;
       const height = numOfRows * nextProps.suggestionRowHeight;
-      this.openSuggestionsPanel(height);
+      // TODO szaboat: calculate
+      const sectionsHeight = 40;
+      this.openSuggestionsPanel(height + sectionsHeight);
     }
   }
 
@@ -108,8 +102,7 @@ export default class MentionsTextInput extends Component {
   }
 
   isSuggestionMatch(lastNChar) {
-    // TODO szaboat
-    const lastNMatches = this.props.suggestionsData[0].data.some((suggestion) => {
+    const lastNMatches = this.props.suggestionsData.some((suggestion) => {
       const name = suggestion.name.toLowerCase();
       const lastNLowCase = lastNChar.trim().toLowerCase();
       if (
@@ -166,7 +159,7 @@ export default class MentionsTextInput extends Component {
             horizontal={this.props.horizontal}
             ListEmptyComponent={this.props.loadingComponent}
             enableEmptySections={true}
-            sections={this.props.suggestionsData}
+            sections={this.props.sectionsMapper(this.props.suggestionsData)}
             keyExtractor={this.props.keyExtractor}
             renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
             renderSectionHeader={({ section: { title } }) => (
@@ -213,6 +206,7 @@ MentionsTextInput.propTypes = {
     PropTypes.element,
   ]).isRequired,
   suggestionsData: PropTypes.array.isRequired,
+  sectionsMapper: PropTypes.func,
   keyExtractor: PropTypes.func.isRequired,
   horizontal: PropTypes.bool,
   suggestionRowHeight: PropTypes.number.isRequired,
