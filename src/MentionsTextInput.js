@@ -156,6 +156,8 @@ export default class MentionsTextInput extends Component {
         <Animated.View style={[{ ...this.props.suggestionsPanelStyle }, { height: this.state.suggestionRowHeight }]}>
           <SectionList
             keyboardShouldPersistTaps={"always"}
+            windowSize={10}
+            removeClippedSubviews={true}
             horizontal={this.props.horizontal}
             ListEmptyComponent={this.props.loadingComponent}
             enableEmptySections={true}
