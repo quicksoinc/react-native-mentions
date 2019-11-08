@@ -4,12 +4,20 @@ import {
   View,
   Animated,
   TextInput,
-  FlatList,
-  ViewPropTypes
+  SectionList,
+  ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
 const SUGGESTION_MATCH_LENGTH = 3;
+
+const getLength = (data) => {
+  let length = 0;
+  data.forEach(element => {
+    length += element.data.length
+  });
+  return length;
+}
 
 export default class MentionsTextInput extends Component {
   constructor() {
@@ -33,8 +41,8 @@ export default class MentionsTextInput extends Component {
   componentWillReceiveProps(nextProps) {
     if (!nextProps.value) {
       this.resetTextbox();
-    } else if (this.isTrackingStarted && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
-      const numOfRows = nextProps.MaxVisibleRowCount >= nextProps.suggestionsData.length ? nextProps.suggestionsData.length : nextProps.MaxVisibleRowCount;
+    } else if (this.isTrackingStarted && !nextProps.horizontal && getLength(nextProps.suggestionsData) !== 0) {
+      const numOfRows = nextProps.MaxVisibleRowCount >= getLength(nextProps.suggestionsData) ? getLength(nextProps.suggestionsData) : nextProps.MaxVisibleRowCount;
       const height = numOfRows * nextProps.suggestionRowHeight;
       this.openSuggestionsPanel(height);
     }
@@ -100,7 +108,8 @@ export default class MentionsTextInput extends Component {
   }
 
   isSuggestionMatch(lastNChar) {
-    const lastNMatches = this.props.suggestionsData.some((suggestion) => {
+    // TODO szaboat
+    const lastNMatches = this.props.suggestionsData[0].data.some((suggestion) => {
       const name = suggestion.name.toLowerCase();
       const lastNLowCase = lastNChar.trim().toLowerCase();
       if (
@@ -152,14 +161,18 @@ export default class MentionsTextInput extends Component {
     return (
       <View>
         <Animated.View style={[{ ...this.props.suggestionsPanelStyle }, { height: this.state.suggestionRowHeight }]}>
-          <FlatList
+          <SectionList
             keyboardShouldPersistTaps={"always"}
             horizontal={this.props.horizontal}
             ListEmptyComponent={this.props.loadingComponent}
             enableEmptySections={true}
-            data={this.props.suggestionsData}
+            sections={this.props.suggestionsData}
             keyExtractor={this.props.keyExtractor}
             renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text style={this.props.sectionHeaderStyle}>{title}</Text>
+            )}
+            stickySectionHeadersEnabled={false}
           />
         </Animated.View>
         <TextInput
@@ -209,7 +222,8 @@ MentionsTextInput.propTypes = {
         `Prop 'MaxVisibleRowCount' is required if horizontal is set to false.`
       );
     }
-  }
+  },
+  sectionHeaderStyle: Text.propTypes.style
 };
 
 MentionsTextInput.defaultProps = {
@@ -219,4 +233,12 @@ MentionsTextInput.defaultProps = {
   textInputMinHeight: 30,
   textInputMaxHeight: 80,
   horizontal: true,
+  sectionHeaderStyle: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    backgroundColor: "#E6E9EB",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+  }
 }
