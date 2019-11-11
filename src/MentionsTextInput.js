@@ -5,11 +5,23 @@ import {
   Animated,
   TextInput,
   SectionList,
+  StyleSheet,
   ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
 const SUGGESTION_MATCH_LENGTH = 3;
+
+const styles = StyleSheet.create({
+  sectionHeader: {
+    fontSize: 12,
+    textTransform: "uppercase",
+    backgroundColor: "#E6E9EB",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+  },
+});
 
 export default class MentionsTextInput extends Component {
   constructor() {
@@ -18,10 +30,21 @@ export default class MentionsTextInput extends Component {
       textInputHeight: "",
       isTrackingStarted: false,
       suggestionRowHeight: new Animated.Value(0),
-
-    }
+      sections: [],
+    };
     this.isTrackingStarted = false;
     this.previousChar = " ";
+
+    this.renderItem = (rowData) => {
+      return this.props.renderSuggestionsRow(
+        rowData,
+        this.stopTracking.bind(this),
+      );
+    };
+
+    this.renderSectionHeader = ({ section: { title } }) => {
+      return <Text style={styles.sectionHeader}>{title}</Text>;
+    };
   }
 
   componentWillMount() {
@@ -31,6 +54,13 @@ export default class MentionsTextInput extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    // This is emulating `useEffect(fn, [suggestionsData])`]
+    if (nextProps.suggestionsData !== this.props.suggestionsData) {
+      this.setState({
+        sections: this.props.sectionsMapper(nextProps.suggestionsData),
+      });
+    }
+
     if (!nextProps.value) {
       this.resetTextbox();
     } else if (this.isTrackingStarted && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
@@ -161,12 +191,10 @@ export default class MentionsTextInput extends Component {
             horizontal={this.props.horizontal}
             ListEmptyComponent={this.props.loadingComponent}
             enableEmptySections={true}
-            sections={this.props.sectionsMapper(this.props.suggestionsData)}
+            sections={this.state.sections}
             keyExtractor={this.props.keyExtractor}
-            renderItem={(rowData) => { return this.props.renderSuggestionsRow(rowData, this.stopTracking.bind(this)) }}
-            renderSectionHeader={({ section: { title } }) => (
-              <Text style={this.props.sectionHeaderStyle}>{title}</Text>
-            )}
+            renderItem={this.renderItem}
+            renderSectionHeader={this.renderSectionHeader}
             stickySectionHeadersEnabled={false}
           />
         </Animated.View>
@@ -219,7 +247,6 @@ MentionsTextInput.propTypes = {
       );
     }
   },
-  sectionHeaderStyle: Text.propTypes.style
 };
 
 MentionsTextInput.defaultProps = {
