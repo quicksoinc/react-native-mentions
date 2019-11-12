@@ -5,23 +5,11 @@ import {
   Animated,
   TextInput,
   SectionList,
-  StyleSheet,
   ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
 const SUGGESTION_MATCH_LENGTH = 3;
-
-const styles = StyleSheet.create({
-  sectionHeader: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    backgroundColor: "#E6E9EB",
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 4,
-  },
-});
 
 export default class MentionsTextInput extends Component {
   constructor() {
@@ -33,17 +21,12 @@ export default class MentionsTextInput extends Component {
       sections: [],
     };
     this.isTrackingStarted = false;
-    this.previousChar = " ";
 
     this.renderItem = (rowData) => {
       return this.props.renderSuggestionsRow(
         rowData,
         this.stopTracking.bind(this),
       );
-    };
-
-    this.renderSectionHeader = ({ section: { title } }) => {
-      return <Text style={styles.sectionHeader}>{title}</Text>;
     };
   }
 
@@ -57,7 +40,7 @@ export default class MentionsTextInput extends Component {
     // This is emulating `useEffect(fn, [suggestionsData])`]
     if (nextProps.suggestionsData !== this.props.suggestionsData) {
       this.setState({
-        sections: this.props.sectionsMapper(nextProps.suggestionsData),
+        sections: nextProps.sectionsMapper(nextProps.suggestionsData),
       });
     }
 
@@ -66,9 +49,8 @@ export default class MentionsTextInput extends Component {
     } else if (this.isTrackingStarted && !nextProps.horizontal && nextProps.suggestionsData.length !== 0) {
       const numOfRows = nextProps.MaxVisibleRowCount >= nextProps.suggestionsData.length ? nextProps.suggestionsData.length : nextProps.MaxVisibleRowCount;
       const height = numOfRows * nextProps.suggestionRowHeight;
-      // TODO szaboat: calculate
-      const sectionsHeight = 40;
-      this.openSuggestionsPanel(height + sectionsHeight);
+      const sections = nextProps.sectionsMapper(nextProps.suggestionsData);
+      this.openSuggestionsPanel(height + sections.length * this.props.sectionHeaderHeight);
     }
   }
 
@@ -135,11 +117,9 @@ export default class MentionsTextInput extends Component {
     ) {
       this.stopTracking();
     }
-    this.previousChar = lastChar;
   }
 
   resetTextbox() {
-    this.previousChar = " ";
     this.stopTracking();
     this.setState({ textInputHeight: this.props.textInputMinHeight });
   }
@@ -158,7 +138,7 @@ export default class MentionsTextInput extends Component {
             sections={this.state.sections}
             keyExtractor={this.props.keyExtractor}
             renderItem={this.renderItem}
-            renderSectionHeader={this.renderSectionHeader}
+            renderSectionHeader={this.props.renderSectionHeader}
             stickySectionHeadersEnabled={false}
           />
         </Animated.View>
@@ -220,12 +200,5 @@ MentionsTextInput.defaultProps = {
   textInputMinHeight: 30,
   textInputMaxHeight: 80,
   horizontal: true,
-  sectionHeaderStyle: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    backgroundColor: "#E6E9EB",
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 4,
-  }
+  sectionHeaderHeight: 0,
 }
