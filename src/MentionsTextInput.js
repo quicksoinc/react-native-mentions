@@ -106,55 +106,28 @@ export default class MentionsTextInput extends Component {
     this.props.triggerCallback(lastKeyword);
   }
 
-  getBoundary(matcher) {
-    const matcherBoundary =
-      matcher.length && matcher.startsWith(this.props.trigger) == 1 ? "B" : "b";
-    const boundary =
-      this.props.triggerLocation === "new-word-only" ? matcherBoundary : "";
-    return boundary;
-  }
-
-  identifyKeyword(val, matcher) {
-    if (this.isTrackingStarted) {
-      const boundary = this.getBoundary(matcher);
-      const escapedTrigger = matcher.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-      const pattern = new RegExp(
-        `\\${boundary}${escapedTrigger}[a-z0-9_-]+|\\${boundary}${escapedTrigger}`,
-        `gi`,
-      );
-
-      const keywordArray = val.match(pattern);
-      if (keywordArray && !!keywordArray.length) {
-        const lastKeyword = keywordArray[keywordArray.length - 1];
-        this.updateSuggestions(lastKeyword);
-      }
+  isSuggestionMatch(lastWord) {
+    if (lastWord.length >= SUGGESTION_MATCH_LENGTH) {
+      return this.props.isSuggestionMatch(lastWord);
+    } else {
+      return false;
     }
-  }
-
-  isSuggestionMatch(lastNChar) {
-    const lastNMatches = this.props.suggestionsData.some((suggestion) => {
-      const name = suggestion.name.toLowerCase();
-      const lastNLowCase = lastNChar.trim().toLowerCase();
-      if (
-        lastNLowCase.length == SUGGESTION_MATCH_LENGTH &&
-        name.indexOf(lastNLowCase) != -1
-      ) {
-        return true;
-      }
-    });
-
-    return lastNMatches;
   }
 
   onChange(e) {
     const val = e.nativeEvent.text;
     this.props.onChangeText(val); // pass changed text back
     const lastChar = val.substr(val.length - 1);
-    const lastNChar = val.substr(val.length - SUGGESTION_MATCH_LENGTH);
+    const words = val.split(" ");
+    const lastWord = words[words.length - 1];
     const triggerMatch = lastChar === this.props.trigger;
-    const suggestionMatch = this.isSuggestionMatch(lastNChar);
-    
-    if (triggerMatch || suggestionMatch) {
+    const suggestionMatch = this.isSuggestionMatch(lastWord);
+
+    if (triggerMatch) {
+      this.updateSuggestions(this.props.trigger);
+      this.startTracking();
+    } else if (suggestionMatch) {
+      this.updateSuggestions(lastWord);
       this.startTracking();
     } else if (
       (lastChar === " " && this.state.isTrackingStarted) ||
@@ -163,15 +136,6 @@ export default class MentionsTextInput extends Component {
       this.stopTracking();
     }
     this.previousChar = lastChar;
-
-    let matcher = this.props.trigger;
-
-    if (suggestionMatch) {
-      const words = val.split(" ");
-      matcher = words[words.length - 1];
-    }
-
-    this.identifyKeyword(val, matcher);
   }
 
   resetTextbox() {
