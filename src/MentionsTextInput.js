@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 
-const SUGGESTION_MATCH_LENGTH = 3;
-
 export default class MentionsTextInput extends Component {
   constructor() {
     super();
@@ -42,6 +40,16 @@ export default class MentionsTextInput extends Component {
       this.setState({
         sections: nextProps.sectionsMapper(nextProps.suggestionsData),
       });
+
+      // When going from [] --> [...], open the panel!
+      if (!this.isTrackingStarted && nextProps.suggestionsData.length > 0) {
+        this.startTracking();
+      }
+
+      // When going from [...] --> [], close the panel!
+      if (this.isTrackingStarted && nextProps.suggestionsData.length === 0) {
+        this.stopTracking();
+      }
     }
 
     if (!nextProps.value) {
@@ -84,39 +92,9 @@ export default class MentionsTextInput extends Component {
     }).start();
   }
 
-  updateSuggestions(lastKeyword) {
-    this.props.triggerCallback(lastKeyword);
-  }
-
-  isSuggestionMatch(lastWord) {
-    if (lastWord.length >= SUGGESTION_MATCH_LENGTH) {
-      return this.props.isSuggestionMatch(lastWord);
-    } else {
-      return false;
-    }
-  }
-
   onChange(e) {
     const val = e.nativeEvent.text;
     this.props.onChangeText(val); // pass changed text back
-    const lastChar = val.substr(val.length - 1);
-    const words = val.split(" ");
-    const lastWord = words[words.length - 1];
-    const triggerMatch = lastChar === this.props.trigger;
-    const suggestionMatch = this.isSuggestionMatch(lastWord);
-
-    if (triggerMatch) {
-      this.updateSuggestions(this.props.trigger);
-      this.startTracking();
-    } else if (suggestionMatch) {
-      this.updateSuggestions(lastWord);
-      this.startTracking();
-    } else if (
-      (lastChar === " " && this.state.isTrackingStarted) ||
-      val === ""
-    ) {
-      this.stopTracking();
-    }
   }
 
   resetTextbox() {
@@ -170,11 +148,8 @@ MentionsTextInput.propTypes = {
   ]),
   textInputMinHeight: PropTypes.number,
   textInputMaxHeight: PropTypes.number,
-  trigger: PropTypes.string.isRequired,
-  triggerLocation: PropTypes.oneOf(['new-word-only', 'anywhere']).isRequired,
   value: PropTypes.string.isRequired,
   onChangeText: PropTypes.func.isRequired,
-  triggerCallback: PropTypes.func.isRequired,
   renderSuggestionsRow: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.element,
