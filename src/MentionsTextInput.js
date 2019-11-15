@@ -130,7 +130,7 @@ export default class MentionsTextInput extends Component {
           ref={(component) => (this._textInput = component)}
           onChange={this.onChange.bind(this)}
           multiline={true}
-          value={this.props.value}
+          value={this.props.children ? null : this.props.value}
           style={[{ ...this.props.textInputStyle }, { height: Math.min(this.props.textInputMaxHeight, this.state.textInputHeight) }]}
           placeholder={this.props.placeholder ? this.props.placeholder : 'Write a comment...'}
         />
